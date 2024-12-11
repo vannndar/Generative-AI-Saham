@@ -88,11 +88,13 @@ def update_method_dropdown(selected_file):
 
     # Cek apakah folder model tersedia dan ambil daftar file di dalamnya
     if os.path.isdir(method_folder):
-        method_files = [f for f in os.listdir(method_folder) if f.endswith('.csv')]  # Filter file .h5
+        method_files = [f for f in os.listdir(method_folder) if f.endswith('.csv')]  # Filter file .csv
         options = [{'label': f.split('.')[0], 'value': f} for f in method_files]
-        return options, method_files[0] if method_files else None
+        options.insert(0, {'label': 'Close', 'value': 'close'})  # Menambahkan 'close' sebagai opsi
+        return options, 'close'  # Set default ke 'close'
     else:
-        return [], None  # Jika folder tidak ditemukan, kosongkan dropdown metode
+        # Jika folder tidak ditemukan, tetap 'close' sebagai pilihan
+        return [{'label': 'Close', 'value': 'close'}], 'close'
 
 # Fungsi callback Dash utama untuk memperbarui grafik
 @app.callback(
@@ -120,7 +122,7 @@ def update_graph(selected_file, selected_method):
     print(f"Selected method: {selected_method}")
     print(f"Selected file: {selected_file}")
 
-    if selected_method is None:
+    if selected_method is 'close':
         if model_file in os.listdir(model_dir):
             print(f"Model {model_file} found in Model/ folder")
             train, valid, rmse, mae = get_graph_data_only(model_file, selected_file)
@@ -180,8 +182,8 @@ app.layout = html.Div([
     # Dropdown untuk memilih metode prediksi
     dcc.Dropdown(
         id='method-dropdown',
-        options=[],  # Defaultnya kosong, akan diupdate dinamis
-        value=None,  # Nilai default adalah None
+        options=[{'label': 'Close', 'value': 'close'}],  # Menambahkan 'close' sebagai opsi default
+        value='close',  # Nilai default adalah 'close'
         style={'width': '50%', 'marginTop': '20px'}
     ),
     
