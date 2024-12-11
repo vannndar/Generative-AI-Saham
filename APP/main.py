@@ -2,6 +2,7 @@ from dash import Dash, html, dcc, callback, Output, Input
 import pandas as pd
 from close import create_plotly_figure, predict_stock, predict_stock_only
 from sentiment import predict_sentiment, predict_sentiment_model
+from download import download_data
 import os
 import asyncio
 
@@ -122,7 +123,7 @@ def update_graph(selected_file, selected_method):
     print(f"Selected method: {selected_method}")
     print(f"Selected file: {selected_file}")
 
-    if selected_method is 'close':
+    if selected_method == 'close':
         if model_file in os.listdir(model_dir):
             print(f"Model {model_file} found in Model/ folder")
             train, valid, rmse, mae = get_graph_data_only(model_file, selected_file)
@@ -194,8 +195,35 @@ app.layout = html.Div([
     html.Div(id='rmse-mae', style={'textAlign': 'center', 'marginTop': '20px'}),
     
     # Graph untuk menampilkan hasil prediksi
-    dcc.Graph(id='graph-content')
+    dcc.Graph(id='graph-content'),
+
+    html.Div([
+        html.Label("Enter Stock Symbol:"),
+        dcc.Input(id='stock-input', type='text', placeholder='Enter stock symbol', style={'width': '50%'}),
+    ], style={'marginTop': '20px', 'textAlign': 'center'}),
+    
+    # Button untuk memulai download
+    html.Div([
+        html.Button('Download Data', id='download-button', n_clicks=0)
+    ], style={'marginTop': '20px', 'textAlign': 'center'}),
+    
+    # Display the message from download function
+    html.Div(id='download-output', style={'textAlign': 'center', 'marginTop': '20px'}),
 ])
+
+# Callback to handle button click and stock input
+@app.callback(
+    Output('download-output', 'children'),  # Update the output message
+    Input('download-button', 'n_clicks'),    # Button click
+    Input('stock-input', 'value')            # Stock symbol input
+)
+
+def on_button_click(n_clicks, stock_symbol):
+    if n_clicks > 0 and stock_symbol:
+        # Trigger download_data function when button is clicked and stock symbol is provided
+        result = download_data(stock_symbol)
+        return result  # Return the result of download_data
+    return "Please enter a stock symbol and click the button."
 
 if __name__ == '__main__':
     app.run_server(debug=False)
